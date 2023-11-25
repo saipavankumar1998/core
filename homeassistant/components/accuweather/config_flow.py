@@ -12,11 +12,10 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
+from homeassistant.const import CONF_API_KEY, CONF_CITY, CONF_NAME
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.schema_config_entry_flow import (
     SchemaFlowFormStep,
     SchemaOptionsFlowHandler,
@@ -37,7 +36,7 @@ OPTIONS_FLOW = {
 class AccuWeatherFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for AccuWeather."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -53,12 +52,27 @@ class AccuWeatherFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             websession = async_get_clientsession(self.hass)
             try:
-                async with timeout(10):
+                async with timeout(20):
+                    # Get the location key by querying for the city
+                    city = user_input[CONF_CITY]
+                    url1 = f"http://dataservice.accuweather.com/locations/v1/cities/search?apikey={user_input[CONF_API_KEY]}&q={city}"
+                    location_key_request = await websession.get(url1)
+                    location_key_response = await location_key_request.json()
+                    location_key = location_key_response[0]["Key"]
+
+                    # Get the lat and long from the location_key
+                    url2 = f"http://dataservice.accuweather.com/locations/v1/{location_key}?apikey={user_input[CONF_API_KEY]}"
+                    lat_long_request = await websession.get(url2)
+                    lat_long_response = await lat_long_request.json()
+                    latitude = lat_long_response["GeoPosition"]["Latitude"]
+                    longitude = lat_long_response["GeoPosition"]["Longitude"]
+
+                    # Use the location key to fetch the weather data
                     accuweather = AccuWeather(
                         user_input[CONF_API_KEY],
                         websession,
-                        latitude=user_input[CONF_LATITUDE],
-                        longitude=user_input[CONF_LONGITUDE],
+                        latitude=latitude,
+                        longitude=longitude,
                     )
                     await accuweather.async_get_location()
             except (ApiError, ClientConnectorError, asyncio.TimeoutError, ClientError):
@@ -72,21 +86,14 @@ class AccuWeatherFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     accuweather.location_key, raise_on_progress=False
                 )
 
-                return self.async_create_entry(
-                    title=user_input[CONF_NAME], data=user_input
-                )
+            return self.async_create_entry(title=user_input[CONF_NAME], data=user_input)
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_API_KEY): str,
-                    vol.Optional(
-                        CONF_LATITUDE, default=self.hass.config.latitude
-                    ): cv.latitude,
-                    vol.Optional(
-                        CONF_LONGITUDE, default=self.hass.config.longitude
-                    ): cv.longitude,
+                    vol.Required(CONF_CITY, default=self.hass.config.city): str,
                     vol.Optional(
                         CONF_NAME, default=self.hass.config.location_name
                     ): str,

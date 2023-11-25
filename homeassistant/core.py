@@ -2087,7 +2087,7 @@ class Config:
         self.hass = hass
 
         self._store = self._ConfigStore(self.hass)
-
+        self.city: str = "City"
         self.latitude: float = 0
         self.longitude: float = 0
 
@@ -2194,6 +2194,7 @@ class Config:
         Async friendly.
         """
         return {
+            "city": self.city,
             "latitude": self.latitude,
             "longitude": self.longitude,
             "elevation": self.elevation,
@@ -2230,6 +2231,7 @@ class Config:
         self,
         *,
         source: ConfigSource,
+        city: str | None = None,
         latitude: float | None = None,
         longitude: float | None = None,
         elevation: int | None = None,
@@ -2245,6 +2247,8 @@ class Config:
     ) -> None:
         """Update the configuration from a dictionary."""
         self.config_source = source
+        if city is not None:
+            self.city = city
         if latitude is not None:
             self.latitude = latitude
         if longitude is not None:
@@ -2307,6 +2311,7 @@ class Config:
 
         self._update(
             source=ConfigSource.STORAGE,
+            city=data.get("city"),
             latitude=data.get("latitude"),
             longitude=data.get("longitude"),
             elevation=data.get("elevation"),
@@ -2323,6 +2328,7 @@ class Config:
     async def _async_store(self) -> None:
         """Store [homeassistant] core config."""
         data = {
+            "city": self.city,
             "latitude": self.latitude,
             "longitude": self.longitude,
             "elevation": self.elevation,

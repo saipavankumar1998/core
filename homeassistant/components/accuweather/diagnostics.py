@@ -5,13 +5,13 @@ from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.const import CONF_API_KEY, CONF_CITY, CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
 
 from . import AccuWeatherDataUpdateCoordinator
 from .const import DOMAIN
 
-TO_REDACT = {CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE}
+TO_REDACT = {CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE, CONF_CITY}
 
 
 async def async_get_config_entry_diagnostics(

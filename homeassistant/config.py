@@ -27,6 +27,7 @@ from .const import (
     CONF_ALLOWLIST_EXTERNAL_URLS,
     CONF_AUTH_MFA_MODULES,
     CONF_AUTH_PROVIDERS,
+    CONF_CITY,
     CONF_COUNTRY,
     CONF_CURRENCY,
     CONF_CUSTOMIZE,
@@ -248,6 +249,7 @@ CORE_CONFIG_SCHEMA = vol.All(
     CUSTOMIZE_CONFIG_SCHEMA.extend(
         {
             CONF_NAME: vol.Coerce(str),
+            CONF_CITY: vol.Coerce(str),
             CONF_LATITUDE: cv.latitude,
             CONF_LONGITUDE: cv.longitude,
             CONF_ELEVATION: vol.Coerce(int),
@@ -570,6 +572,7 @@ async def async_process_ha_core_config(hass: HomeAssistant, config: dict) -> Non
     if any(
         k in config
         for k in (
+            CONF_CITY,
             CONF_LATITUDE,
             CONF_LONGITUDE,
             CONF_NAME,
@@ -586,6 +589,7 @@ async def async_process_ha_core_config(hass: HomeAssistant, config: dict) -> Non
         hac.config_source = ConfigSource.YAML
 
     for key, attr in (
+        (CONF_CITY, "city"),
         (CONF_LATITUDE, "latitude"),
         (CONF_LONGITUDE, "longitude"),
         (CONF_NAME, "location_name"),
