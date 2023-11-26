@@ -112,6 +112,11 @@ async def test_context_compatiblity_with_data_update_coordinator(
     assert not set(coordinator.async_contexts())
 
     def update_callback1():
+        """Callback intentionally left empty.
+        This callback is used for testing the ability to add and remove listeners
+        with different contexts. The actual behavior of the callback is not relevant
+        to this particular test, so it's intentionally left empty.
+        """
         pass
 
     def update_callback2():
