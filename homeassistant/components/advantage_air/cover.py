@@ -40,11 +40,11 @@ async def async_setup_entry(
                     entities.append(AdvantageAirZoneVent(instance, ac_key, zone_key))
     if things := instance.coordinator.data.get("myThings"):
         for thing in things["things"].values():
-            if thing["channelDipState"] in [1, 2]:  # 1 = "Blind", 2 = "Blind 2"
+            if thing["channelDipState"] in [1, 2]:  
                 entities.append(
                     AdvantageAirThingCover(instance, thing, CoverDeviceClass.BLIND)
                 )
-            elif thing["channelDipState"] == 3:  # 3 = "Garage door"
+            elif thing["channelDipState"] == 3:
                 entities.append(
                     AdvantageAirThingCover(instance, thing, CoverDeviceClass.GARAGE)
                 )
