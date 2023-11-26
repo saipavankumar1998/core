@@ -108,6 +108,9 @@ HUE_API_STATE_SAT_MAX = 254
 HUE_API_STATE_CT_MIN = 153  # Color temp
 HUE_API_STATE_CT_MAX = 500
 
+# Server response messages
+ONLY_LOCAL_IPS_ALLOWED = "Only local IPs allowed"
+
 HUE_API_USERNAME = "nouser"
 UNAUTHORIZED_USER = [
     {"error": {"address": "/", "description": "unauthorized user", "type": "1"}}
@@ -152,7 +155,7 @@ class HueUsernameView(HomeAssistantView):
         """Handle a POST request."""
         assert request.remote is not None
         if not _remote_is_allowed(request.remote):
-            return self.json_message("Only local IPs allowed", HTTPStatus.UNAUTHORIZED)
+            return self.json_message(ONLY_LOCAL_IPS_ALLOWED, HTTPStatus.UNAUTHORIZED)
 
         try:
             data = await request.json(loads=json_loads)
@@ -181,7 +184,7 @@ class HueAllGroupsStateView(HomeAssistantView):
         """Process a request to make the Brilliant Lightpad work."""
         assert request.remote is not None
         if not _remote_is_allowed(request.remote):
-            return self.json_message("Only local IPs allowed", HTTPStatus.UNAUTHORIZED)
+            return self.json_message(ONLY_LOCAL_IPS_ALLOWED, HTTPStatus.UNAUTHORIZED)
 
         return self.json({})
 
@@ -202,7 +205,7 @@ class HueGroupView(HomeAssistantView):
         """Process a request to make the Logitech Pop working."""
         assert request.remote is not None
         if not _remote_is_allowed(request.remote):
-            return self.json_message("Only local IPs allowed", HTTPStatus.UNAUTHORIZED)
+            return self.json_message(ONLY_LOCAL_IPS_ALLOWED, HTTPStatus.UNAUTHORIZED)
 
         return self.json(
             [
@@ -233,7 +236,7 @@ class HueAllLightsStateView(HomeAssistantView):
         """Process a request to get the list of available lights."""
         assert request.remote is not None
         if not _remote_is_allowed(request.remote):
-            return self.json_message("Only local IPs allowed", HTTPStatus.UNAUTHORIZED)
+            return self.json_message(ONLY_LOCAL_IPS_ALLOWED, HTTPStatus.UNAUTHORIZED)
 
         return self.json(create_list_of_entities(self.config, request))
 
@@ -254,7 +257,7 @@ class HueFullStateView(HomeAssistantView):
         """Process a request to get the list of available lights."""
         assert request.remote is not None
         if not _remote_is_allowed(request.remote):
-            return self.json_message("only local IPs allowed", HTTPStatus.UNAUTHORIZED)
+            return self.json_message(ONLY_LOCAL_IPS_ALLOWED, HTTPStatus.UNAUTHORIZED)
         if username != HUE_API_USERNAME:
             return self.json(UNAUTHORIZED_USER)
 
@@ -283,7 +286,7 @@ class HueConfigView(HomeAssistantView):
         """Process a request to get the configuration."""
         assert request.remote is not None
         if not _remote_is_allowed(request.remote):
-            return self.json_message("only local IPs allowed", HTTPStatus.UNAUTHORIZED)
+            return self.json_message(ONLY_LOCAL_IPS_ALLOWED, HTTPStatus.UNAUTHORIZED)
 
         json_response = create_config_model(self.config, request)
 
@@ -306,7 +309,7 @@ class HueOneLightStateView(HomeAssistantView):
         """Process a request to get the state of an individual light."""
         assert request.remote is not None
         if not _remote_is_allowed(request.remote):
-            return self.json_message("Only local IPs allowed", HTTPStatus.UNAUTHORIZED)
+            return self.json_message(ONLY_LOCAL_IPS_ALLOWED, HTTPStatus.UNAUTHORIZED)
 
         hass: core.HomeAssistant = request.app["hass"]
         hass_entity_id = self.config.number_to_entity_id(entity_id)
@@ -348,7 +351,7 @@ class HueOneLightChangeView(HomeAssistantView):
         """Process a request to set the state of an individual light."""
         assert request.remote is not None
         if not _remote_is_allowed(request.remote):
-            return self.json_message("Only local IPs allowed", HTTPStatus.UNAUTHORIZED)
+            return self.json_message(ONLY_LOCAL_IPS_ALLOWED, HTTPStatus.UNAUTHORIZED)
 
         config = self.config
         hass: core.HomeAssistant = request.app["hass"]
