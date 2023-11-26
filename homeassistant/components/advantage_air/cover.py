@@ -27,28 +27,45 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up AdvantageAir cover platform."""
-
     instance: AdvantageAirData = hass.data[ADVANTAGE_AIR_DOMAIN][config_entry.entry_id]
 
     entities: list[CoverEntity] = []
-    if aircons := instance.coordinator.data.get("aircons"):
-        for ac_key, ac_device in aircons.items():
-            for zone_key, zone in ac_device["zones"].items():
-                # Only add zone vent controls when zone in vent control mode.
-                if zone["type"] == 0:
-                    entities.append(AdvantageAirZoneVent(instance, ac_key, zone_key))
-    if things := instance.coordinator.data.get("myThings"):
-        for thing in things["things"].values():
-            if thing["channelDipState"] in [1, 2]:  # 1 = "Blind", 2 = "Blind 2"
-                entities.append(
-                    AdvantageAirThingCover(instance, thing, CoverDeviceClass.BLIND)
-                )
-            elif thing["channelDipState"] == 3:  # 3 = "Garage door"
-                entities.append(
-                    AdvantageAirThingCover(instance, thing, CoverDeviceClass.GARAGE)
-                )
+    entities.extend(setup_zone_vent_controls(instance))
+    entities.extend(setup_thing_covers(instance))
+
     async_add_entities(entities)
+
+
+def setup_zone_vent_controls(instance: AdvantageAirData) -> List[CoverEntity]:
+    return [
+        AdvantageAirZoneVent(instance, ac_key, zone_key)
+        for ac_key, ac_device in instance.coordinator.data.get("aircons", {}).items()
+        for zone_key, zone in ac_device.get("zones", {}).items()
+        if zone["type"] == 0
+    ]
+
+
+def setup_thing_covers(instance: AdvantageAirData) -> List[CoverEntity]:
+    def is_blind(thing):
+        return thing["channelDipState"] in [1, 2]
+
+    def is_garage_door(thing):
+        return thing["channelDipState"] == 3
+
+    blind_covers = [
+        AdvantageAirThingCover(instance, thing, CoverDeviceClass.BLIND)
+        for thing in instance.coordinator.data.get("myThings", {}).get("things", {}).values()
+        if is_blind(thing)
+    ]
+
+    garage_door_covers = [
+        AdvantageAirThingCover(instance, thing, CoverDeviceClass.GARAGE)
+        for thing in instance.coordinator.data.get("myThings", {}).get("things", {}).values()
+        if is_garage_door(thing)
+    ]
+
+    return blind_covers + garage_door_covers
+
 
 
 class AdvantageAirZoneVent(AdvantageAirZoneEntity, CoverEntity):
