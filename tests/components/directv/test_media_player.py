@@ -370,6 +370,6 @@ async def test_main_services(
         remote_mock.assert_called_once_with("stop", "0")
 
     with patch("directv.DIRECTV.tune") as tune_mock:
-        await async_play_media(hass, "channel", 312, MAIN_ENTITY_ID)
+        await async_play_media(hass, "channel", "312", MAIN_ENTITY_ID)
         await hass.async_block_till_done()
         tune_mock.assert_called_once_with("312", "0")
