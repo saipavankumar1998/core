@@ -1,7 +1,7 @@
 """Support for AdGuard Home."""
 from __future__ import annotations
 
-from adguardhome import AdGuardHome, AdGuardHomeConnectionError
+from adguardhome import AdGuardHome, AdGuardHomeConnectionError, AdGuardHomeError
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -62,6 +62,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await adguard.version()
     except AdGuardHomeConnectionError as exception:
         raise ConfigEntryNotReady from exception
+    except AdGuardHomeError as exception:
+        raise ConfigEntryNotReady("Failed checking AdGuard Home version") from exception
+
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -87,6 +90,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Service call to refresh the filter subscriptions in AdGuard Home."""
         await adguard.filtering.refresh(allowlist=False, force=call.data[CONF_FORCE])
 
+
+    
     hass.services.async_register(
         DOMAIN, SERVICE_ADD_URL, add_url, schema=SERVICE_ADD_URL_SCHEMA
     )
