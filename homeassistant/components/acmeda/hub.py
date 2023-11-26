@@ -33,7 +33,7 @@ class PulseHub:
         """Return the host of this hub."""
         return self.config_entry.data["host"]
 
-    async def async_setup(self, tries=0):
+    async def async_setup(self):
         """Set up a hub based on host parameter."""
         host = self.host
 
